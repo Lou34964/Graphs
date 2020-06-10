@@ -24,4 +24,3 @@ def earliest_ancestor(ancestors, starting_node):
             s.append(min(graph[v]))
 
     return visited.pop()
-    pass

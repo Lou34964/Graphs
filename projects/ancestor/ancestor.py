@@ -1,6 +1,7 @@
 
 def earliest_ancestor(ancestors, starting_node):
     
+    #build graph
     graph = {}
     for p, c in ancestors:
         if c not in graph:
@@ -11,6 +12,7 @@ def earliest_ancestor(ancestors, starting_node):
     s.append(starting_node)
     visited = []
     
+    #get ancestors
     while len(s):
         v = s.pop()
         if v not in visited:            

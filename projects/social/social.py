@@ -1,4 +1,5 @@
 import random
+from names import create_random_name
 
 class Queue():
     def __init__(self):
@@ -13,10 +14,12 @@ class Queue():
     def size(self):
         return len(self.queue)
 
-
 class User:
     def __init__(self, name):
         self.name = name
+    
+    def __repr__(self):
+        return self.name
 
 class SocialGraph:
     def __init__(self):
@@ -48,69 +51,95 @@ class SocialGraph:
         """
         Takes a number of users and an average number of friendships
         as arguments
-
         Creates that number of users and a randomly distributed friendships
         between those users.
-
         The number of users must be greater than the average number of friendships.
         """
         # Reset graph
         self.last_id = 0
         self.users = {}
         self.friendships = {}
-        # !!!! IMPLEMENT ME
-
-        for i in range(0, num_users):
-            self.add_user(f"User {i}")
-        # Create friendships
-        # Generate all friendship combonations
-        possible_friendships = []
-
-        # avoid dups by making sure first number is smaller
-        for user_id in self.users:
-            for friend_id in range(user_id+1, self.last_id+1):
-                possible_friendships.append((user_id, friend_id))
-
-        # shuffle all possilbe friendships
-        random.shuffle(possible_friendships)
-
-        # create for first X pairs
-        for i in range(num_users * avg_friendships // 2):
-            friendship = possible_friendships[i]
-            self.add_friendship(friendship[0], friendship[1])
         
+        # impossible average: display an error message
+        if avg_friendships >= num_users:
+            print("Could not populate graph: The number of users must be greater than the average number of friendships.")
+            return
+
+        # Add users
+        for i in range(1, num_users + 1):
+            self.add_user(create_random_name())
+
+        # Generate pairs of IDs to make friendships
+        total_friendships = round(avg_friendships * num_users / 2)
+
+        friendships_to_create = set()
+
+        while len(friendships_to_create) < total_friendships:
+
+            user1ID = random.randrange(1, num_users + 1)
+            user2ID = random.randrange(1, num_users + 1)
+            
+            # pick a different user ID for user2
+            while user1ID == user2ID:
+                user2ID = random.randrange(1, num_users + 1)
+
+            # ensure that the same two IDs are not added twice, such as (6, 4) and (4, 6)
+            smallerID = user1ID if user1ID < user2ID else user2ID
+            largerID = user1ID if user1ID > user2ID else user2ID
+
+            friendships_to_create.add((smallerID, largerID))
+
+        # create friendships
+        for friendship in friendships_to_create:
+
+            user1ID, user2ID = friendship
+            self.add_friendship(user1ID, user2ID)
+        
+        print(f"\nSuccessfully populated graph with {num_users} users, each with an average of {avg_friendships} friendships.\n")
 
     def get_all_social_paths(self, user_id):
         """
         Takes a user's user_id as an argument
-
         Returns a dictionary containing every user in that user's
         extended network with the shortest friendship path between them.
-
         The key is the friend's ID and the value is the path.
         """
-        visited = {}  # Note that this is a dictionary, not a set
-        # !!!! IMPLEMENT ME
-        q = Queue()
-        q.enqueue([user_id])
+        # store paths to all friends seen so far in a dictionary
+        visited = {}
+        
+        # initialize dictionary with path to self
+        # later connections will build off of this entry
+        visited[user_id] = [user_id]
 
-        while q.size() > 0:
-            user_path = q.dequeue()
-            last_id = user_path[-1]
+        # use a queue to keep track of all friends that have not been visited
+        friends_to_visit = Queue()
+        friends_to_visit.enqueue(user_id)
 
-            if last_id not in visited:
-                visited[last_id] = user_path
+        while friends_to_visit.size() > 0:
 
-                for friend_id in self.friendships[last_id]:
-                    new_path = user_path + [friend_id]
-                    q.enqueue(new_path)
+            current_friend_ID = friends_to_visit.dequeue()
+            friends_of_current_friend = self.friendships[current_friend_ID]
+            
+            # process friends of current friend
+            for friend_ID in friends_of_current_friend:
+
+                # add new friend to queue and update path
+                if friend_ID not in visited:
+                    friends_to_visit.enqueue(friend_ID)
+
+                    # make a copy of the path to this friend so far, and add the current friend's ID
+                    # store the path in "visited" to mark the friend as visited
+                    path_to_new_friend = list(visited[current_friend_ID])
+                    path_to_new_friend.append(friend_ID)
+                    visited[friend_ID] = path_to_new_friend
 
         return visited
 
 
 if __name__ == '__main__':
     sg = SocialGraph()
-    sg.populate_graph(10, 2)
-    print(sg.friendships)
-    connections = sg.get_all_social_paths(1)
-    print(connections)
+    sg.populate_graph(100, 10)
+    print("users:\n  ", sg.users)
+    print("friendships:\n  ", sg.friendships)
+    connections = sg.get_all_social_paths(5)
+    print("connections:\n  ", connections)

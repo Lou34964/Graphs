@@ -13,9 +13,9 @@ world = World()
 # You may uncomment the smaller graphs for development and testing purposes.
 # map_file = "maps/test_line.txt"
 # map_file = "maps/test_cross.txt"
-# map_file = "maps/test_loop.txt"
+map_file = "maps/test_loop.txt"
 # map_file = "maps/test_loop_fork.txt"
-map_file = "maps/main_maze.txt"
+# map_file = "maps/main_maze.txt"
 
 # Loads the map into a dictionary
 room_graph=literal_eval(open(map_file, "r").read())
@@ -139,7 +139,6 @@ while len(traversal_graph) < len(room_graph):
         # print(path[-1])
         for room_dir in traversal_graph[go_back]:
             # print('exit', room_dir)
-        # for room_dir, room_id in traversal_graph[player.current_room.id].items():
             # print(player.current_room.id, path[-1], traversal_graph[player.current_room.id][room_dir] == path[-1])
             if traversal_graph[go_back][room_dir] == path[-1]:
                 # print(room_dir)
